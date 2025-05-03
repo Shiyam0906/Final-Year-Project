@@ -1,0 +1,104 @@
+TOTAL :4 GET REQUEST and  3 POST REQUEST
+
+
+ESP32 CAMERA :
+
+api call : 1 (2 request and 2 response "Same time")
+
+For Checking you can use video.html file 
+
+@app.route('/video_feed')==GET Request 
+
+        Request :  http://localhost:5000//video_feed
+
+        output: Returns the video stream as an API response
+
+@app.route('/word_stream')== GET Request 
+
+        Request :  http://localhost:5000//word_stream
+
+        output: Return the latest detected word as Json Format 
+        
+        *NOTE*: (it will print Continously that "latest_word" ,In frontend only one word should Print )
+
+
+api call : 2 (1 request and 1 response)
+
+@app.route('/scan', methods=['POST'])
+
+        Post Request:  http://localhost:5000//scan
+            
+          1.  {
+              "command": "start"
+              }
+
+              output: scan complete text from book and Return (Json Format)
+          2.  {
+              "command": "stop"
+              }
+              output: Scanning stopped" (Json Format)
+          
+          3. output: Invalid command
+
+
+api call : 3 (1 request and 1 response)
+
+@app.route("/ESPcamera", methods=["GET"])
+
+        Request :  http://localhost:5000//ESPcamera
+
+        output: Returns "connected" if camera is connect (Json Format) ,else "not connected"
+
+
+MOBILE CAMERA :
+
+api call : 3 (1 request and 1 response)
+
+@app.route("/checkcamera", methods=["GET"])
+
+        Request :  http://localhost:5000//checkcamera
+
+        output: Returns "connected" if camera is connect (Json Format) ,else "not connected"
+
+
+api call : 4 (1 request and 1 response)
+
+
+@app.route("/speech", methods=["POST"])
+
+        Post Request: http://localhost:5000//speech
+          {
+            "Text": "Hello",
+            "sourceLanguage": "en",
+            "targetLanguage": "ta"
+          }
+
+
+        output: Translated Text and Audio output
+
+api call : 5 (1 request and 1 response)
+
+
+@app.route("/extract", methods=["GET"])
+
+        Request :  http://localhost:5000//extract
+
+        output  : Return corrected_words and corrected_word_count and debug_image
+
+
+api call : 6 (1 request and 1 response)
+
+@app.route('/Full_scan', methods=['POST'])
+
+
+        Post Request:  http://localhost:5000//Full_scan
+            
+            1.  {
+                "command": "start"
+                }
+            
+            output:  scan complete text from book and Return(Json Format)
+
+            2.else
+
+            output:"Invalid command"

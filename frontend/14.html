@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <title>Settings</title>
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #e5e7eb;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background: linear-gradient(to right, #1e293b, #3b82f6);
+            color: #fff;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 1.7rem;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: left;
+        }
+
+        .card h1 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #1e293b;
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .nav-bar a {
+            text-decoration: none;
+            color: #3b82f6;
+        }
+
+        .nav-bar h3 {
+            margin-left: 20px;
+            color: #1e293b;
+        }
+
+        .box {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .d-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .d-flex img {
+            cursor: pointer;
+        }
+
+        .box h5 {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #374151;
+        }
+
+        .box h4 {
+            font-size: 1.4rem;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .ml-auto {
+            margin-left: auto;
+        }
+
+        /* Specific Styles for Settings Page */
+        .settings-container {
+            width: 100%;
+            padding: 20px;
+        }
+
+        .setting-option {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .setting-option i {
+            margin-right: 10px;
+        }
+
+        .setting-option select,
+        .setting-option input[type="checkbox"] {
+            margin-left: auto;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #3b82f6;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(14px);
+        }
+
+        .setting-option h3 {
+            font-size: 1.4rem;
+            color: #1e293b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Visual Interface</h2>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <div class="nav-bar">
+                <a href="javascript:void(0);" onclick="goBack()">
+                    <i class="fas fa-arrow-left" style="font-size: 30px;"></i>
+                </a>
+                <h3>Settings</h3>
+            </div>
+
+            <div class="settings-container">
+                <!-- Language Selection -->
+                <div class="setting-option">
+                    <i class="fas fa-language" style="font-size: 40px;"></i>
+                    <h3>Language</h3>
+                    <select id="languageSelect" class="ml-auto mr-3" onchange="updateSelectedLanguage(this.value)">
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="ta">Tamil</option>
+                        <option value="hi">Hindi</option>
+                        <option value="fr">French</option>
+                    </select>
+                </div>
+
+                <!-- Save Text Toggle -->
+                <div class="setting-option">
+                    <i class="fas fa-save" style="font-size: 40px;"></i>
+                    <h3>Save Detected Text</h3>
+                    <label class="switch ml-auto mr-2">
+                        <input type="checkbox" id="saveTextToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <!-- Delete Collection -->
+                <div class="setting-option" id="deleteCollection">
+                    <i class="fas fa-trash-alt" style="font-size: 40px;"></i>
+                    <h3>Delete All Collection</h3>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>// Function to update selected language
+        // Function to update selected language
+        function updateSelectedLanguage(lang) {
+            console.log("Selected language:", lang); // Corrected this line
+            localStorage.setItem("selectedLanguage", lang); // Save selected language to localStorage
+        }
+
+        
+        // Event listener for save text toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveTextToggle = document.getElementById('saveTextToggle');
+            const saveTextEnabled = JSON.parse(localStorage.getItem('saveTextEnabled')) || false;
+            saveTextToggle.checked = saveTextEnabled; // Set toggle state based on saved value
+        
+            saveTextToggle.addEventListener('change', function() {
+                const isChecked = saveTextToggle.checked;
+                console.log("Save text toggle:", isChecked);
+                localStorage.setItem('saveTextEnabled', JSON.stringify(isChecked)); // Save toggle state to localStorage
+            });
+        });
+
+        document.getElementById('deleteCollection').addEventListener('click', function() {
+            if (confirm("Are you sure you want to delete all collections?")) {
+                localStorage.setItem('apiResponses', JSON.stringify([])); // Clear the apiresources data in localStorage
+                alert("All collections have been deleted!");
+            }
+        });
+            
+        function goBack() {
+            window.history.back(); // Go to the previous page in the browser's history
+        }
+    </script>
+</body>
+
+</html>

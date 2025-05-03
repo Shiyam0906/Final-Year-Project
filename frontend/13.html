@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <title>Visual Interface - Collections</title>
+    <style>
+      body {
+        display: flex;
+        min-height: 100vh;
+        background-color: #e5e7eb;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .sidebar {
+        width: 220px;
+        height: 100vh;
+        background: linear-gradient(to right, #1e293b, #3b82f6);
+        color: #fff;
+        padding: 20px;
+      }
+
+      .sidebar h2 {
+        font-size: 1.7rem;
+        text-align: center;
+        margin-top: 40px;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+      }
+
+      .card {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 700px;
+        text-align: left;
+      }
+
+      .card h1 {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        color: #1e293b;
+      }
+
+      .nav-bar {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      .nav-bar a {
+        text-decoration: none;
+        color: #3b82f6;
+      }
+
+      .nav-bar h3 {
+        margin-left: 20px;
+        color: #1e293b;
+      }
+
+      .box {
+        background-color: #f9fafb;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .d-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .d-flex i {
+        cursor: pointer;
+      }
+
+      .box h5 {
+        margin-top: 15px;
+        font-size: 1.2rem;
+        color: #374151;
+      }
+
+      .box h4 {
+        font-size: 1.4rem;
+        color: #1e293b;
+      }
+
+      .btn {
+        padding: 14px 20px;
+        background: linear-gradient(to right, #3b82f6, #2563eb);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+      }
+
+      .ml-auto {
+        margin-left: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <h2>Visual Interface</h2>
+    </div>
+
+    <div class="main-content">
+      <div class="card">
+        <div class="nav-bar">
+          <a href="javascript:void(0);" onclick="goBack()">
+              <i class="fas fa-arrow-left" style="font-size: 30px;"></i>
+          </a>
+          <h3>Collections</h3>
+        </div>
+        <main>
+          <div id="responsesContainer" class="mt-4"></div>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      function playAudio(audioSrc) {
+        const audioElement = document.createElement('audio');
+        audioElement.src = audioSrc;
+        audioElement.style.display = 'none';
+        document.body.appendChild(audioElement);
+        audioElement.play();
+        audioElement.onended = () => document.body.removeChild(audioElement); // Remove the audio element after playback
+      }
+
+      function deleteResponse(index) {
+        const apiResponses = JSON.parse(localStorage.getItem('apiResponses')) || [];
+        apiResponses.splice(index, 1); // Remove the item at 'index'
+        localStorage.setItem('apiResponses', JSON.stringify(apiResponses)); // Update localStorage
+        displayResponses(); // Refresh the displayed responses
+      }
+
+      function displayResponses() {
+        const responsesContainer = document.getElementById('responsesContainer');
+        responsesContainer.innerHTML = ''; // Clear previous content
+
+        const apiResponses = JSON.parse(localStorage.getItem('apiResponses')) || [];
+
+        if (apiResponses.length === 0) {
+          responsesContainer.innerHTML = '<p>No items in local storage.</p>';
+        } else {
+          apiResponses.forEach((response, index) => {
+            const boxDiv = document.createElement('div');
+            boxDiv.className = 'box mt-3';
+
+            const dFlexDiv = document.createElement('div');
+            dFlexDiv.className = 'd-flex align-items-center';
+
+            const h3Element = document.createElement('h3');
+            h3Element.textContent = response.text || ''; // Display source text
+
+            const playIcon = document.createElement('i');
+            playIcon.className = 'fas fa-headphones';
+            playIcon.style.cursor = 'pointer';
+            playIcon.onclick = () => playAudio(`data:audio/wav;base64,${response.target_audio}`); // Play target audio on click
+
+            const deleteIcon = document.createElement('i');
+            deleteIcon.className = 'fas fa-trash-alt';
+            deleteIcon.style.cursor = 'pointer';
+            deleteIcon.onclick = () => deleteResponse(index); // Delete the response on click
+
+            dFlexDiv.appendChild(h3Element);
+            dFlexDiv.appendChild(playIcon);
+            dFlexDiv.appendChild(deleteIcon);
+
+            const h5Element = document.createElement('h5');
+            h5Element.textContent = 'Translated Text';
+
+            const h4Element = document.createElement('h4');
+            h4Element.textContent = response.translated_text || ''; // Display translated text
+
+            boxDiv.appendChild(dFlexDiv);
+            boxDiv.appendChild(h5Element);
+            boxDiv.appendChild(h4Element);
+
+            responsesContainer.appendChild(boxDiv);
+          });
+        }
+      }
+
+      // Call the function to display responses
+      displayResponses();
+
+      function goBack() {
+        window.history.back(); // Go to the previous page in the browser's history
+      }
+    </script>
+  </body>
+</html>

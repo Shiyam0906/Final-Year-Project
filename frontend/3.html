@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Interface - Language Selection</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #e5e7eb;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.7rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .card h1 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      color: #1e293b;
+    }
+
+    .dropdown-row {
+      margin-bottom: 30px;
+    }
+
+    .dropdown-row label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+      background-color: #f9fafb;
+    }
+
+    .btn {
+      padding: 14px 20px;
+      background: linear-gradient(to right, #3b82f6, #2563eb);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Visual Interface</h2>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h1>Please select the language you want to translate to</h1>
+
+      <div class="dropdown-row">
+        <label for="to">To:</label>
+        <select id="to"></select>
+      </div>
+
+      <button class="btn" onclick="submitLanguage()">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    const language_codes = {
+      '': 'Select Language',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'ta': 'Tamil',
+      'zh-cn': 'Chinese (Simplified)',
+      'hi': 'Hindi',
+      'ar': 'Arabic',
+      'pt': 'Portuguese',
+      'bn': 'Bengali',
+      'ru': 'Russian',
+      'ja': 'Japanese',
+      'pa': 'Punjabi'
+    };
+
+    function populateLanguages(selectId) {
+      const select = document.getElementById(selectId);
+      for (let code in language_codes) {
+        if (language_codes.hasOwnProperty(code)) {
+          const option = document.createElement('option');
+          option.value = code;
+          option.textContent = language_codes[code];
+          select.appendChild(option);
+        }
+      }
+    }
+
+    populateLanguages('to');
+
+    function submitLanguage() {
+  const to = document.getElementById('to').value;
+  if (!to) {
+    alert("Please select a language before proceeding.");
+    return;
+  }
+
+  // Save selected language to localStorage
+  localStorage.setItem("selectedLanguage", to);
+
+  // Redirect to next page
+  window.location.href = "4.html";
+}
+  </script>
+</body>
+
+</html>

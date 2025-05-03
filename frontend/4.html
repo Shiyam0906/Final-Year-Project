@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visual Interface</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background-color: #1e293b;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .main-content h1 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      color: #1e293b;
+    }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 200px;
+      padding: 12px 20px;
+      margin: 10px;
+      background-color: #3b82f6;
+      color: #fff;
+      text-align: center;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #2563eb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        text-align: center;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Visual Interface</h2>
+  </div>
+  <div class="main-content">
+    <h1>How would you like to capture the text?</h1>
+    <button class="btn" onclick="useESP32()">Use ESP32 camera</button>
+    <button class="btn" onclick="useMobile()">Use mobile camera</button>
+  </div>
+
+  <script>
+    function useESP32() {
+      alert("ESP32 camera selected!");
+      window.location.href = "5.html";
+      // Add your ESP32 camera logic here
+    }
+
+    function useMobile() {
+      alert("Mobile camera selected!");
+      window.location.href = "7.html";
+      // Add your mobile camera logic here
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Based Interaction</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+      width: 220px;
+      height: 100vh;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .main-content h1 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+      color: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Voice Based</h2>
+  </div>
+
+  <div class="main-content">
+    <h1>How would you like to interact with the application?</h1>
+    <p>(Say "Visual" or "Voice")</p>
+  </div>
+
+  <script>
+    function speak(text, callback) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.lang = "en-US";
+      utterance.onend = callback; // Start listening after speech ends
+      speechSynthesis.speak(utterance);
+    }
+
+    function startListening() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Speech Recognition not supported in this browser.");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const result = event.results[0][0].transcript.toLowerCase();
+        console.log("User said:", result);
+        if (result.includes("visual")) {
+          speak("Visual interface selected. Redirecting now.", () => {
+            window.location.href = "3.html"; // Change to your actual page
+          });
+        } else if (result.includes("voice")) {
+          speak("Voice assistant selected. Redirecting now.", () => {
+            window.location.href = "10.html"; // Change to your actual page
+          });
+        } else {
+          speak("Sorry, I did not understand. Please say Visual or Voice.", startListening);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error(event.error);
+        speak("There was an error. Please try again.", startListening);
+      };
+    }
+
+    // Start by reading the question
+    window.onload = () => {
+      speak("How would you like to interact with the application? Say Visual or Voice.", startListening);
+    };
+  </script>
+</body>
+
+</html>

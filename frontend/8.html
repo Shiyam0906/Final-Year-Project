@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan & Read</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      padding-top: 20px;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #ecf0f1;
+      text-align: center;
+      position: relative;
+    }
+
+    .buttons-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .buttons button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .buttons button:hover {
+      background: #2980b9;
+    }
+
+    .big-button {
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 200px;
+    }
+
+    .big-button:hover {
+      background: #c0392b;
+    }
+
+    .extracted-words {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .translated-box {
+      display: none;
+      margin-top: 20px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 60%;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    .translated-box h3,
+    .translated-box h4,
+    .translated-box h5 {
+      margin: 10px 0;
+    }
+
+    .translated-box .fa-volume-up {
+      float: right;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">Scan & Read</div>
+  <div class="main-content">
+    <div class="buttons-container">
+      <div class="buttons">
+        <button onclick="toggleProcessing()" id="toggleButton">
+          <i id="togglelogo" class="fa-solid fa-play"></i><span>Run</span>
+        </button>
+        <button onclick="goToCollection()">
+          <i class="fa-solid fa-folder"></i><span>Collection</span>
+        </button>
+        <button onclick="goToSettings()">
+          <i class="fa-solid fa-cog"></i><span>Settings</span>
+        </button>
+      </div>
+      <button class="big-button" onclick="goToReadBook()">Read Entire Book</button>
+    </div>
+
+    <h1>Detect & Translate a Single Word</h1>
+    <div class="extracted-words">Show the extracted words</div>
+
+    <div id="responsesContainer">
+      <div class="translated-box" id="translatedBox">
+        <div>
+          <h3 id="sourceText"></h3>
+          <i class="fas fa-volume-up" onclick="playAudio()"></i>
+        </div>
+        <h5>Translated Text</h5>
+        <h4 id="translatedText"></h4>
+        <audio id="targetAudio" style="display: none"></audio>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const saveTextEnabled = JSON.parse(localStorage.getItem("saveTextEnabled")) || false;
+      console.log("Save text functionality is", saveTextEnabled ? "enabled" : "disabled");
+    });
+
+    let processing = false;
+
+    function toggleProcessing() {
+      const playButtonIcon = document.getElementById('togglelogo');
+      const buttonText = document.querySelector('#toggleButton span');
+
+      if (!processing) {
+        playButtonIcon.classList.replace('fa-play', 'fa-pause');
+        buttonText.textContent = 'Stop';
+        extractText();
+        processing = true;
+      } else {
+        resetButtonState();
+      }
+    }
+
+    const apiUrlExtract = "http://127.0.0.1:5000/extract";
+
+    function extractText() {
+      fetch(apiUrlExtract, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Extract API response:", data);
+          if (data.corrected_words && data.corrected_words.length > 0) {
+            const word = data.corrected_words[0].word;
+            makeAPICall(word);
+          } else if (data.message) {
+            alert(data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching extract:", error);
+          resetButtonState();
+        });
+    }
+
+    function makeAPICall(textInput = null) {
+      const selectedLanguage = localStorage.getItem("selectedLanguage");
+      if (!selectedLanguage) {
+        alert("Please select a target language!");
+        return;
+      }
+
+      const apiUrl = "http://127.0.0.1:5000/speech";
+      const data = {
+        Text: textInput,
+        SourceLanguage: "en",
+        TargetLanguage: selectedLanguage,
+      };
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+          return response.json();
+        })
+        .then((responseData) => {
+          const saveTextEnabled = JSON.parse(localStorage.getItem("saveTextEnabled")) || false;
+          if (saveTextEnabled) {
+            storeResponseInLocalStorage(responseData);
+          }
+          displayTranslatedText(responseData);
+          resetButtonState();
+        })
+        .catch((error) => {
+          console.error("Error in speech API:", error);
+          resetButtonState();
+        });
+    }
+
+    function storeResponseInLocalStorage(responseData) {
+      const storedResponses = JSON.parse(localStorage.getItem("apiResponses")) || [];
+      storedResponses.push(responseData);
+      localStorage.setItem("apiResponses", JSON.stringify(storedResponses));
+    }
+
+    function displayTranslatedText(responseData) {
+      document.getElementById("sourceText").textContent = responseData.text || "";
+      document.getElementById("translatedText").textContent = responseData.translated_text || "";
+
+      const targetAudioElement = document.getElementById("targetAudio");
+      const translatedDiv = document.getElementById("translatedBox");
+
+      if (responseData.target_audio) {
+        const targetAudioBinary = base64ToArrayBuffer(responseData.target_audio);
+        const blob = new Blob([targetAudioBinary], { type: "audio/wav" });
+        const url = URL.createObjectURL(blob);
+        targetAudioElement.src = url;
+        targetAudioElement.style.display = "block";
+        translatedDiv.style.display = "block";
+        targetAudioElement.play();
+      } else {
+        translatedDiv.style.display = "none";
+      }
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binaryString = window.atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function resetButtonState() {
+      const playButtonIcon = document.getElementById('togglelogo');
+      const buttonText = document.querySelector('#toggleButton span');
+      playButtonIcon.classList.replace('fa-pause', 'fa-play');
+      buttonText.textContent = 'Run';
+      processing = false;
+    }
+
+    function playAudio() {
+      const audio = document.getElementById("targetAudio");
+      if (audio) audio.play();
+    }
+
+    function goToCollection() {
+      window.location.href = "13.html";
+    }
+
+    function goToSettings() {
+      window.location.href = "14.html";
+    }
+
+    function goToReadBook() {
+      window.location.href = "9.html";
+    }
+  </script>
+</body>
+
+</html>

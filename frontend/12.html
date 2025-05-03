@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Assistant - Read Entire Book</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .main-content h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+
+    .output-box {
+      width: 80%;
+      min-height: 200px;
+      border: 2px dashed #1e293b;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #ffffff;
+      color: #333;
+      text-align: left;
+      overflow-y: auto;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      background-color: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 200px;
+    }
+
+    .btn:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Voice Assistant</h2>
+  </div>
+
+  <div class="main-content">
+    <h1>Read Entire Book</h1>
+    <div class="output-box" id="output">[Extracted content from backend will appear here]</div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      speak("Hold the book steady and say 'start' to begin scanning.")
+        .then(() => listenForStartCommand());
+    };
+
+    function speak(text) {
+      return new Promise((resolve, reject) => {
+        if ('speechSynthesis' in window) {
+          const synth = window.speechSynthesis;
+          synth.cancel(); // Cancel ongoing speech
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.onend = () => resolve();
+          utterance.onerror = () => reject(new Error("Speech synthesis error"));
+          synth.speak(utterance);
+        } else {
+          reject(new Error("Speech Synthesis is not supported in this browser."));
+        }
+      });
+    }
+
+    function appendToOutput(text) {
+      const outputDiv = document.getElementById("output");
+      const p = document.createElement("p");
+      p.textContent = text;
+      outputDiv.appendChild(p);
+    }
+
+    function listenForStartCommand() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = function (event) {
+        const spokenText = event.results[0][0].transcript.trim();
+        const command = spokenText.toLowerCase();
+
+        appendToOutput(`🗣️ You said: ${spokenText}`);
+
+        if (command.includes("start")) {
+          handleScanStart();
+        } else {
+          speak(`I heard: ${spokenText}. Please say "start" to begin.`)
+            .then(() => listenForStartCommand());
+        }
+      };
+
+      recognition.onerror = function () {
+        speak("Sorry, I didn't catch that. Please say 'start'.")
+          .then(() => listenForStartCommand());
+      };
+
+      recognition.start();
+    }
+
+    async function handleScanStart() {
+      try {
+        const res = await fetch("http://localhost:5000/scan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({ command: "start" })
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const scannedText = data.extracted_text;
+
+        if (scannedText) {
+          appendToOutput(`📖 Scanned: ${scannedText}`);
+          await speak("Scan complete.");
+          await callSetContext(scannedText);
+          listenForChat();
+        } else {
+          throw new Error("No text extracted");
+        }
+      } catch (err) {
+        console.error(err);
+        speak("Failed to scan. Please try again.")
+          .then(() => listenForStartCommand());
+      }
+    }
+
+    async function callSetContext(text) {
+      try {
+        await fetch("http://localhost:5000/set_context", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({ context: text })
+        });
+      } catch (err) {
+        console.error("Failed to set context:", err);
+        speak("Failed to set context.");
+      }
+    }
+
+    function listenForChat() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = async function (event) {
+        const userInput = event.results[0][0].transcript.trim();
+        appendToOutput(`🗣️ You: ${userInput}`);
+
+        try {
+          const res = await fetch("http://localhost:5000/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify({ message: userInput })
+          });
+
+          const data = await res.json();
+          const botReply = data.response;
+
+          appendToOutput(`🤖 Bot: ${botReply}`);
+          speak(botReply);
+        } catch (err) {
+          console.error(err);
+          speak("There was an error. Please try again.");
+        }
+
+        listenForChat();
+      };
+
+      recognition.onerror = function () {
+        speak("Please say that again.")
+          .then(() => listenForChat());
+      };
+
+      recognition.start();
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice Assistance - Language Selection</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .main-content h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #1e293b;
+    }
+
+    .response-box {
+      margin-top: 20px;
+      padding: 15px;
+      border: 2px dashed #1e293b;
+      border-radius: 8px;
+      width: 300px;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 1.2rem;
+      white-space: pre-line;
+      min-height: 80px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>With Voice Assistance Based</h2>
+  </div>
+
+  <div class="main-content">
+    <h1>Voice Assistant Mode</h1>
+    <div class="response-box" id="output">Waiting for input...</div>
+  </div>
+
+  <script>
+    function speak(text, callback) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+      utterance.onend = () => {
+        if (callback) callback();
+      };
+    }
+
+    function listen(callback) {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const result = event.results[0][0].transcript;
+        callback(result);
+      };
+
+      recognition.onerror = () => {
+        speak("Sorry, I didn't catch that. Please try again.", () => {
+          listen(callback);
+        });
+      };
+    }
+
+    let toLanguage = "";
+
+    function startInteraction() {
+      speak("Which language would you like to translate to?", () => {
+        listen((result) => {
+          toLanguage = result;
+          document.getElementById('output').innerText = `To: ${toLanguage}`;
+          speak(`You selected ${toLanguage}. Redirecting now.`, () => {
+            window.location.href = "11.html";
+          });
+        });
+      });
+    }
+
+    window.onload = () => {
+      startInteraction();
+    };
+  </script>
+</body>
+
+</html>

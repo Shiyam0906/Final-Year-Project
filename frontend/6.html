@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scan & Read</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      padding-top: 20px;
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: #ecf0f1;
+      text-align: center;
+      padding-top: 20px;
+    }
+    .buttons-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .buttons button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .buttons button:hover {
+      background: #2980b9;
+    }
+    .big-button {
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 200px;
+    }
+    .big-button:hover {
+      background: #c0392b;
+    }
+    .video-container {
+      width: 640px;
+      height: 360px;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .video-container img {
+      width: 100%;
+      height: 100%;
+    }
+    .words-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 640px;
+      margin-top: 10px;
+      background: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .word-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      border-bottom: 1px solid #ccc;
+      padding: 5px 0;
+    }
+    .word-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .word-icon {
+      cursor: pointer;
+      color: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">Scan & Read</div>
+  <div class="main-content">
+    <div class="buttons-container">
+      <div class="buttons">
+        <button id="toggleButton" onclick="toggleProcessing()">
+          <i id="togglelogo" class="fa-solid fa-play"></i>
+          <span>Run</span>
+        </button>
+        <button onclick="goToCollection()">
+          <i class="fa-solid fa-folder"></i><span>Collection</span>
+      </button>
+      <button onclick="goToSettings()"><i class="fa-solid fa-cog"></i><span>Settings</span></button>
+      </div>
+    </div>
+    <h1>Detect & Translate a Single Word</h1>
+    <div class="video-container">
+      <img id="video-feed" src="http://localhost:5000/video_feed" alt="Video Stream" />
+    </div>
+
+    <!-- Words Display Section -->
+    <div class="words-container" id="wordsContainer"></div>
+  </div>
+
+  <script>
+    let processing = false;
+    let eventSource = null;
+
+    function toggleProcessing() {
+      const playButtonIcon = document.getElementById('togglelogo');
+      const buttonText = document.querySelector('#toggleButton span');
+      if (!processing) {
+        playButtonIcon.classList.replace('fa-play', 'fa-pause');
+        buttonText.textContent = 'Stop';
+        startListening();
+        processing = true;
+      } else {
+        playButtonIcon.classList.replace('fa-pause', 'fa-play');
+        buttonText.textContent = 'Run';
+        stopListening();
+        processing = false;
+      }
+    }
+
+    function startListening() {
+      eventSource = new EventSource("http://localhost:5000/word_stream");
+      eventSource.onmessage = function(event) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.word) {
+            makeAPICall(data.word);
+          }
+        } catch (error) {
+          console.error("Error parsing SSE data:", error);
+        }
+      };
+      eventSource.onerror = function(error) {
+        console.error("SSE error:", error);
+      };
+    }
+
+    function stopListening() {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+    }
+
+    
+
+    function makeAPICall(textInput) {
+      const selectedLanguage = localStorage.getItem("selectedLanguage") || "ta";
+      const apiUrl = "http://localhost:5000/speech";
+      const data = {
+        Text: textInput,
+        SourceLanguage: "en",
+        TargetLanguage: selectedLanguage,
+      };
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+        .then((res) => res.json())
+        .then((responseData) => {
+          updateWordsContainer(responseData);
+        })
+        .catch((error) => console.error("Speech API error:", error));
+    }
+
+    function updateWordsContainer(data) {
+      const container = document.getElementById("wordsContainer");
+
+      const row = document.createElement("div");
+      row.className = "word-row";
+
+      row.innerHTML = `
+        <div class="word-text">
+          <i class="fa-solid fa-book word-icon" onclick="playAudio('${data.source_audio}')"></i>
+          <span>${data.text}</span>
+        </div>
+        <div class="word-text">
+          <span>${data.translated_text}</span>
+          <i class="fa-solid fa-volume-up word-icon" onclick="playAudio('${data.target_audio}')"></i>
+        </div>
+      `;
+
+      container.prepend(row); // latest at top
+    }
+
+    function base64ToBlob(base64, mimeType) {
+      const byteCharacters = atob(base64);
+      const byteArrays = [];
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArrays.push(byteCharacters.charCodeAt(i));
+      }
+      const byteArray = new Uint8Array(byteArrays);
+      return new Blob([byteArray], { type: mimeType });
+    }
+
+    function playAudio(base64Audio) {
+      const blob = base64ToBlob(base64Audio, "audio/mp3"); // or "audio/wav" if that's your format
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audio.play().catch((err) => {
+        console.error("Audio play error:", err);
+      });
+    }
+    function goToCollection() {
+            window.location.href = "13.html";  
+        }
+
+        //redirect to goToSettings
+        function goToSettings() {
+            window.location.href = "14.html";  
+        }
+
+  </script>
+</body>
+</html> 

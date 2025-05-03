@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connecting to ESP32 Camera</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(to right, #1e293b, #3b82f6);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .main-content h1 {
+      font-size: 1.8rem;
+      color: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Voice Assistance</h2>
+  </div>
+
+  <div class="main-content">
+    <h1>Connecting to ESP32 Camera... <br>Please wait</h1>
+  </div>
+
+  <script>
+    function speak(text, callback) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.lang = "en-US";
+      utterance.onend = callback;
+      speechSynthesis.speak(utterance);
+    }
+  
+    async function checkCameraConnection() {
+      try {
+        const response = await fetch("http://localhost:5000/ESPcamera");
+        const result = await response.json();
+  
+        if (result.status === "connected") {
+          speak("ESP32 camera connected. Redirecting now.", () => {
+            window.location.href = "12.html";
+          });
+        } else {
+          speak("ESP32 camera not connected. Please check the device.");
+        }
+      } catch (error) {
+        speak("Failed to connect to the ESP32 camera. Please try again.");
+      }
+    }
+  
+    window.onload = () => {
+      speak("Connecting to ESP32 camera. Please wait.", () => {
+        checkCameraConnection();
+      });
+    };
+  </script>
+</body>
+
+</html>
